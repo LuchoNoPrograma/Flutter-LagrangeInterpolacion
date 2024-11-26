@@ -1,43 +1,34 @@
 import 'package:flutter/material.dart';
-import 'lagrange.dart';
-import 'resultados_vista.dart';
+import 'package:untitled2/controlador/interpolacion_controlador.dart';
+import 'package:untitled2/vista/resultado_vista.dart';
 
-class InterpolationInputScreen extends StatefulWidget {
-  const InterpolationInputScreen({Key? key}) : super(key: key);
+class EntradaInterpolacionVista extends StatefulWidget {
+  const EntradaInterpolacionVista({super.key});
 
   @override
-  State<InterpolationInputScreen> createState() =>
-      _InterpolationInputScreenState();
+  State<EntradaInterpolacionVista> createState() => _EntradaInterpolacionVistaState();
 }
 
-class _InterpolationInputScreenState extends State<InterpolationInputScreen> {
+class _EntradaInterpolacionVistaState extends State<EntradaInterpolacionVista> {
+  final controller = InterpolacionControlador();
   final List<Map<String, TextEditingController>> points = [];
-
-  @override
-  void initState() {
-    super.initState();
-    addPoint(); // Inicia con un punto por defecto
-  }
 
   void addPoint() {
     setState(() {
-      points.add({
-        "x": TextEditingController(),
-        "y": TextEditingController(),
-      });
+      points.add({"x": TextEditingController(), "y": TextEditingController()});
     });
   }
 
   void resolveInterpolation() {
-    final List<double> xValues = [];
-    final List<double> yValues = [];
+    controller.xValues.clear();
+    controller.yValues.clear();
 
     for (var point in points) {
       final x = double.tryParse(point["x"]!.text);
       final y = double.tryParse(point["y"]!.text);
+
       if (x != null && y != null) {
-        xValues.add(x);
-        yValues.add(y);
+        controller.agregarPunto(x, y);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Por favor, ingresa valores válidos.")),
@@ -46,16 +37,15 @@ class _InterpolationInputScreenState extends State<InterpolationInputScreen> {
       }
     }
 
-    if (xValues.isNotEmpty && yValues.isNotEmpty) {
-      LagrangeInterpolation.calcularPolinomioConPasos(xValues, yValues);
-
+    if (controller.validarPuntos()) {
+      controller.calcularInterpolacion();
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ResultadoVista(
-            pasos: LagrangeInterpolation.pasos,
-            xValues: xValues,
-            yValues: yValues,
+            controller: controller,
+            xValues: controller.xValues,
+            yValues: controller.yValues,
           ),
         ),
       );
@@ -84,9 +74,7 @@ class _InterpolationInputScreenState extends State<InterpolationInputScreen> {
                         child: TextField(
                           controller: points[index]["x"],
                           keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: "x${index + 1}",
-                          ),
+                          decoration: InputDecoration(labelText: "x${index + 1}"),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -94,9 +82,7 @@ class _InterpolationInputScreenState extends State<InterpolationInputScreen> {
                         child: TextField(
                           controller: points[index]["y"],
                           keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: "y${index + 1}",
-                          ),
+                          decoration: InputDecoration(labelText: "y${index + 1}"),
                         ),
                       ),
                       IconButton(

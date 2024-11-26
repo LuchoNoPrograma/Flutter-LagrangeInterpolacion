@@ -1,33 +1,34 @@
-import 'dart:math'; // Import necesario para usar pow
+import 'dart:math';
 
-class LagrangeInterpolation {
+class LagrangeModelo {
   static List<String> pasos = [];
   static Map<int, List<String>> pasosPorLi = {};
 
-  // Método para calcular el polinomio de interpolación con pasos
   static List<double> calcularPolinomioConPasos(List<double> x, List<double> y) {
-    pasosPorLi.clear();  // Limpiar los pasos almacenados previamente
+    pasosPorLi.clear();
 
     int numPuntos = x.length;
-    List<double> resultado = List.filled(numPuntos * 2 - 1, 0.0); // Asegúrate de que el tamaño sea correcto
+    List<double> resultado = List.filled(numPuntos * 2 - 1, 0.0);
 
+    //Ciclo padre para operar CADA PUNTO
     for (int i = 0; i < numPuntos; i++) {
       List<String> pasos = [];
 
       pasos.add(r"\text{Reemplazar terminos de } L_{" + i.toString() + r"}(x) \text{ y operar:}");
 
-      // Paso inicial: Reemplazar (x - x_j) en el numerador y (x_i - x_j) en el denominador
+      // Paso 1: Reemplazar (x - x_j) en el numerador y (x_i - x_j) en el denominador
       StringBuffer reemplazoNumerador = StringBuffer();
       StringBuffer reemplazoDenominador = StringBuffer();
       double denominadorOperado = 1.0;
       List<List<double>> factoresNumerador = [];
 
+      //1er. Ciclo anidado para reemplazar los valores de L(i)
       for (int j = 0; j < numPuntos; j++) {
         if (j != i) {
-          // Numerador: (x - x_j)
-          factoresNumerador.add([-x[j], 1.0]);
+          // Numerador: (x - x_j) -> osea el punto actual de la iteracion pero en negativo -x[j], ejemplo: j = 3 => -3
+          factoresNumerador.add([-x[j], 1.0]); //-> el segundo param es el coeficiente de x en (x - x_j) osea ignoren esto
 
-          // Denominador: (x_i - x_j)
+          // Denominador: (x_i - x_j) -> aca opera el denominador
           denominadorOperado *= (x[i] - x[j]);
 
           String valorNumerador = (x[j] < 0 ? "(${formatearNumero(x[j])})" : formatearNumero(x[j]));
@@ -51,16 +52,16 @@ class LagrangeInterpolation {
           reemplazoDenominador.toString() +
           r"}");
 
-      // Expansión del numerador
+      // Paso 2.- Realizar la división de cada término del numerador entre el denominador
+      // Expansión del numerador => multiplicacion de polinomios
       List<double> numeradorExpandido = _expandirNumerador(factoresNumerador);
 
       // Mostrar el paso con numerador expandido
       pasos.add(r"\text{Dividir los coeficientes del númerador entre el denominador:}");
       pasos.add(r"L_{" + i.toString() + r"}(x) = \frac{" +
-          mostrarPolinomio(numeradorExpandido) + r"}" +
-          r"{" + formatearNumero(denominadorOperado) + r"}");
+          mostrarPolinomio(numeradorExpandido) + r"}" + r"{" + formatearNumero(denominadorOperado) + r"}");
 
-      // Realizar la división de cada término del numerador entre el denominador
+      //2do. Ciclo anidado para operar numerador sobre denominador
       List<double> numeradorDividido = [];
       for (int j = 0; j < numeradorExpandido.length; j++) {
         numeradorDividido.add(numeradorExpandido[j] / denominadorOperado);
@@ -68,27 +69,18 @@ class LagrangeInterpolation {
 
       // Mostrar el paso de la división
       pasos.add(r"\text{Resultado obtenido:}");
-      pasos.add(r"L_{" +
-          i.toString() +
-          r"}(x) = " +
-          mostrarPolinomio(numeradorDividido));
+      pasos.add(r"L_{" + i.toString() + r"}(x) = " + mostrarPolinomio(numeradorDividido));
 
-      pasosPorLi[i] = pasos;  // Almacenar los pasos de L_i(x)
+      pasosPorLi[i] = pasos; // Almacenar los pasos de cada L_i(x)
 
-      // Acumular los términos de cada L_i(x) multiplicado por y_i
+      //Paso por completar, por ahora multiplica cada L_i por y_i pero no muestra el proceso
+      //3er. Ciclo anidado para multiplicar el y_i por L_i y agregar al resultado
       for (int j = 0; j < numeradorDividido.length; j++) {
         resultado[j] += numeradorDividido[j] * y[i];
       }
     }
 
     return resultado;
-  }
-
-  static String formatearNumero(double numero) {
-    if (numero % 1 == 0) {
-      return numero.toInt().toString(); // Si es entero, eliminar decimales
-    }
-    return numero.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
   static List<double> _expandirNumerador(List<List<double>> factores) {
@@ -98,28 +90,6 @@ class LagrangeInterpolation {
       resultado = _multiplicarPolinomios(resultado, factor);
     }
     return resultado;
-  }
-
-
-  static List<double> _calcularNumeradorPolinomio(List<double> x, int i, int numPuntos) {
-    List<double> coeficientes = [1.0];
-    for (int j = 0; j < numPuntos; j++) {
-      if (j != i) {
-        coeficientes = _multiplicarPolinomios(coeficientes, [-x[j], 1.0]);
-      }
-    }
-    return coeficientes;
-  }
-
-
-  static double _calcularDenominador(List<double> x, int i) {
-    double denominador = 1.0;
-    for (int j = 0; j < x.length; j++) {
-      if (j != i) {
-        denominador *= (x[i] - x[j]);
-      }
-    }
-    return denominador;
   }
 
   static List<double> _multiplicarPolinomios(List<double> p1, List<double> p2) {
@@ -139,6 +109,13 @@ class LagrangeInterpolation {
       resultado += coeficientes[i] * pow(x, i);
     }
     return resultado;
+  }
+
+  static String formatearNumero(double numero) {
+    if (numero % 1 == 0) {
+      return numero.toInt().toString(); // Si es entero, eliminar decimales
+    }
+    return numero.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
   static String mostrarPolinomio(List<double> coeficientes) {
