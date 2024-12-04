@@ -3,14 +3,16 @@ import 'dart:math';
 class LagrangeModelo {
   static List<String> pasos = [];
   static Map<int, List<String>> pasosPorLi = {};
+  static String formulaFinal = "";
 
   static List<double> calcularPolinomioConPasos(List<double> x, List<double> y) {
     pasosPorLi.clear();
+    formulaFinal = "";
 
     int numPuntos = x.length;
     List<double> resultado = List.filled(numPuntos * 2 - 1, 0.0);
 
-    //Ciclo padre para operar CADA PUNTO
+    // Ciclo padre para operar CADA PUNTO
     for (int i = 0; i < numPuntos; i++) {
       List<String> pasos = [];
 
@@ -22,11 +24,13 @@ class LagrangeModelo {
       double denominadorOperado = 1.0;
       List<List<double>> factoresNumerador = [];
 
-      //1er. Ciclo anidado para reemplazar los valores de L(i)
+      StringBuffer terminos = StringBuffer();
+
+      // 1er. Ciclo anidado para reemplazar los valores de L(i)
       for (int j = 0; j < numPuntos; j++) {
         if (j != i) {
           // Numerador: (x - x_j) -> osea el punto actual de la iteracion pero en negativo -x[j], ejemplo: j = 3 => -3
-          factoresNumerador.add([-x[j], 1.0]); //-> el segundo param es el coeficiente de x en (x - x_j) osea ignoren esto
+          factoresNumerador.add([-x[j], 1.0]); // El segundo param es el coeficiente de x en (x - x_j) osea ignoren esto
 
           // Denominador: (x_i - x_j) -> aca opera el denominador
           denominadorOperado *= (x[i] - x[j]);
@@ -53,15 +57,15 @@ class LagrangeModelo {
           r"}");
 
       // Paso 2.- Realizar la división de cada término del numerador entre el denominador
-      // Expansión del numerador => multiplicacion de polinomios
+      // Expansión del numerador => multiplicación de polinomios
       List<double> numeradorExpandido = _expandirNumerador(factoresNumerador);
 
       // Mostrar el paso con numerador expandido
-      pasos.add(r"\text{Dividir los coeficientes del númerador entre el denominador:}");
+      pasos.add(r"\text{Dividir coeficientes númerador/denominador:}");
       pasos.add(r"L_{" + i.toString() + r"}(x) = \frac{" +
           mostrarPolinomio(numeradorExpandido) + r"}" + r"{" + formatearNumero(denominadorOperado) + r"}");
 
-      //2do. Ciclo anidado para operar numerador sobre denominador
+      // 2do. Ciclo anidado para operar numerador sobre denominador
       List<double> numeradorDividido = [];
       for (int j = 0; j < numeradorExpandido.length; j++) {
         numeradorDividido.add(numeradorExpandido[j] / denominadorOperado);
@@ -71,10 +75,24 @@ class LagrangeModelo {
       pasos.add(r"\text{Resultado obtenido:}");
       pasos.add(r"L_{" + i.toString() + r"}(x) = " + mostrarPolinomio(numeradorDividido));
 
+      // Aquí agregamos la parte de multiplicar el polinomio con y_i
+      // Modificamos la fórmula final para que cada término tenga (L_i(x)) * y_i
+
+      String polinomioConYi = "(${mostrarPolinomio(numeradorDividido)})";  // Polinomio rodeado de paréntesis
+      String polinomioConYiFinal = "$polinomioConYi(${formatearNumero(y[i])})";  // Multiplicamos por y_i
+
+      // Agregamos este término a la fórmula final
+      if (i == numPuntos - 1) {
+        formulaFinal += polinomioConYiFinal; // Sin "+" al final
+      } else {
+        formulaFinal += "$polinomioConYiFinal + "; // Añadir "+" solo si no es el último término
+      }
+
+
       pasosPorLi[i] = pasos; // Almacenar los pasos de cada L_i(x)
 
-      //Paso por completar, por ahora multiplica cada L_i por y_i pero no muestra el proceso
-      //3er. Ciclo anidado para multiplicar el y_i por L_i y agregar al resultado
+      // Paso por completar, por ahora multiplica cada L_i por y_i pero no muestra el proceso
+      // 3er. Ciclo anidado para multiplicar el y_i por L_i y agregar al resultado
       for (int j = 0; j < numeradorDividido.length; j++) {
         resultado[j] += numeradorDividido[j] * y[i];
       }

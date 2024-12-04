@@ -11,7 +11,11 @@ class EntradaInterpolacionVista extends StatefulWidget {
 
 class _EntradaInterpolacionVistaState extends State<EntradaInterpolacionVista> {
   final controller = InterpolacionControlador();
-  final List<Map<String, TextEditingController>> points = [];
+  // Inicializando con dos puntos vacíos
+  final List<Map<String, TextEditingController>> points = [
+    {"x": TextEditingController(), "y": TextEditingController()},
+    {"x": TextEditingController(), "y": TextEditingController()},
+  ];
 
   void addPoint() {
     setState(() {
@@ -51,7 +55,7 @@ class _EntradaInterpolacionVistaState extends State<EntradaInterpolacionVista> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor, ingresa al menos un punto.")),
+        const SnackBar(content: Text("Por favor, ingresa puntos válidos.")),
       );
     }
   }
@@ -99,14 +103,25 @@ class _EntradaInterpolacionVistaState extends State<EntradaInterpolacionVista> {
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            // Botón para agregar punto con outline y ícono de plus
+            OutlinedButton.icon(
               onPressed: addPoint,
-              child: const Text("Agregar Punto"),
+              icon: const Icon(Icons.add), // Ícono de "+" para agregar punto
+              label: const Text("Agregar Punto"),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                side: const BorderSide(color: Colors.indigo), // Color de borde índigo
+              ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            // Botón para resolver con ícono de cálculo
+            ElevatedButton.icon(
               onPressed: resolveInterpolation,
-              child: const Text("Resolver"),
+              icon: const Icon(Icons.calculate), // Ícono de cálculo
+              label: const Text("Resolver"),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
             ),
           ],
         ),

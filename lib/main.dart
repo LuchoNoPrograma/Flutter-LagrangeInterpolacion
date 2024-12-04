@@ -12,7 +12,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Interpolación de Lagrange',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.indigo, // Fondo por defecto
+            foregroundColor: Colors.white, // Texto por defecto
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.indigo, // Color del texto y borde
+          ),
+        ),
+      ),
       home: const EntradaInterpolacionVista(),
     );
   }

@@ -4,6 +4,7 @@ class InterpolacionControlador {
   List<double> xValues = [];
   List<double> yValues = [];
   late List<double> coefficients;
+  String formulaFinal = "";
 
   void agregarPunto(double x, double y) {
     xValues.add(x);
@@ -16,6 +17,12 @@ class InterpolacionControlador {
 
   void calcularInterpolacion() {
     coefficients = LagrangeModelo.calcularPolinomioConPasos(xValues, yValues);
+    formulaFinal = LagrangeModelo.formulaFinal;
+  }
+
+
+  String mostrarFormulaFinal() {
+    return formulaFinal;  // Devolver la fórmula final para mostrar
   }
 
   List<String> obtenerPasosPorLi(int index) {
